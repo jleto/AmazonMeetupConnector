@@ -21,11 +21,31 @@ class meetup:
 
     def getPayments(self,  startDate, endDate):
 
-        __startDate = str(int((datetime.datetime(startDate.year, startDate.month, startDate.day) - \
+        try:
+            __startDate = str(int((datetime.datetime(startDate.year, startDate.month, startDate.day) - \
 		                       datetime.datetime(1970, 1,1)).total_seconds()))+'000'
-        __endDate = str(int((datetime.datetime(endDate.year, endDate.month, endDate.day) - \
+        except:
+            __endDate = None
+            pass
+
+        try:
+            __endDate = str(int((datetime.datetime(endDate.year, endDate.month, endDate.day) - \
 		                     datetime.datetime(1970,1,1)).total_seconds()))+'000'
-        events_url = 'http://api.meetup.com/2/events?key='+self.getApiKey()+'&time='+__startDate+','+__endDate+'&group_urlname='+self.getGroupName()+'&fields=fee&status=upcoming,past'
+        except:
+            __endDate = None
+            pass
+
+        #   Construct url
+        events_url = 'http://api.meetup.com/2/events?key='+self.getApiKey()
+        
+        if __startDate is not None and __endDate is not None:
+            events_url = events_url+'&time='+__startDate+','+__endDate
+        elif __startDate is None and __endDate is not None:
+            events_url = events_url+'&time=,'+__endDate
+        elif __startDate is not None and __endDate is None:
+            events_url = events_url+'&time='+__startDate+','  
+			
+        events_url = events_url+'&group_urlname='+self.getGroupName()+'&fields=fee&status=upcoming,past'
 
         payments = {}
         try:
