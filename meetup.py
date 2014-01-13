@@ -23,29 +23,19 @@ class meetup:
 
         try:
             __startDate = str(int((datetime.datetime(startDate.year, startDate.month, startDate.day) - \
-		                       datetime.datetime(1970, 1,1)).total_seconds()))+'000'
+		                           datetime.datetime(1970, 1,1)).total_seconds()))+'000'
         except:
-            __endDate = None
-            pass
+            __startDate = '0'
 
         try:
             __endDate = str(int((datetime.datetime(endDate.year, endDate.month, endDate.day) - \
-		                     datetime.datetime(1970,1,1)).total_seconds()))+'000'
+		                         datetime.datetime(1970,1,1)).total_seconds()))+'000'
         except:
-            __endDate = None
-            pass
+            __endDate = str(int((datetime.datetime(datetime.datetime.today().year, datetime.datetime.today().month, datetime.datetime.today().day + 1) - \
+                                 datetime.datetime(1970,1,1)).total_seconds()))+'000'
 
         #   Construct url
-        events_url = 'http://api.meetup.com/2/events?key='+self.getApiKey()
-        
-        if __startDate is not None and __endDate is not None:
-            events_url = events_url+'&time='+__startDate+','+__endDate
-        elif __startDate is None and __endDate is not None:
-            events_url = events_url+'&time=,'+__endDate
-        elif __startDate is not None and __endDate is None:
-            events_url = events_url+'&time='+__startDate+','  
-			
-        events_url = events_url+'&group_urlname='+self.getGroupName()+'&fields=fee&status=upcoming,past'
+        events_url = 'http://api.meetup.com/2/events?key='+self.getApiKey()+'&time='+__startDate+','+__endDate+'&group_urlname='+self.getGroupName()+'&fields=fee&status=upcoming,past'
 
         payments = {}
         try:
