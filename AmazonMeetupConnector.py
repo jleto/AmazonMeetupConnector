@@ -2,6 +2,9 @@ import sys, traceback
 import os
 from datetime import datetime
 import logging
+import json
+import csv
+import collections
 import meetup
 from pprint import pprint
 
@@ -22,18 +25,20 @@ with open('meetup.properties', 'r') as f:
 
         k, v = line.split("=", 1)
         meetupProperties[k] = v
+        print(meetupProperties[k])
 
 #   If only utility script is called
 if len(sys.argv) <= 1:
     sys.exit("Usage: python %s [OPTION] [PARAMETERS]\n"
              "Where possible options include:\n"
-             "   --merge                        Merge amazon and meetup payment information.\n"
+             "   --payments                        Merge amazon and meetup payment information.\n"
              "   --help                         Help for using this tool.\n"
              "Where possible optional parameters include:\n"
              "   --start-date=STARTDATE         Start date of the search. If omitted, search will start at the first transaction.\n"
              "   --end-date=ENDDATE             End end of the search. If ommitted, search will span to the most current transaction.\n"
 			 "   --meetup-groupname=GROUPNAME   Name of the Meetup Group to query.\n"
 			 "   --meetup-apikey=APIKEY         Meetup Group Api Key.\n"
+             "   --output-format=OUTPUTFORMAT   Format to Output Data.\n"
 			 )
 
 #   If help is requested
@@ -41,7 +46,7 @@ elif (sys.argv[1] == '--help'):
     sys.exit("Help for %s not yet implemented." % sys.argv[0])
 
 #   Test for valid options, instantiate provider objects
-if sys.argv[1] == '--merge':
+if sys.argv[1] == '--payments':
 
     meetupGroupName = meetupProperties['groupName']
     meetupApiKey = meetupProperties['apiKey']
@@ -58,6 +63,10 @@ if sys.argv[1] == '--merge':
             meetupGroupName = arg.split("=",1)[1]
         elif arg.split("=",1)[0] == "--meetup-apikey":
             meetupApiKey = arg.split("=",1)[1]
+        elif arg.split("=",1)[0] == "--output-format":
+            outputFormat = arg.split("=",1)[1]
+        elif arg.split("=",1)[0] == "--output-filename":
+            outputFileName = arg.split("=",1)[1]
 
     #   Instantiate meetup object with group name and api key
     meetupProvider = meetup.meetup(meetupGroupName, meetupApiKey)
@@ -65,5 +74,19 @@ if sys.argv[1] == '--merge':
 	#   Get payment transactions from meetup for the defined time period
     payments = meetupProvider.getPayments(startDate, endDate)
 
-    pprint (payments) 
+    if outputFormat == "CSV":
+        writer = csv.writer(open("meetup-"+str(endDate).split(" ")[0].replace('/','-')+".csv", 'w'), quoting=csv.QUOTE_ALL)
+        writer.writerow(['id','date','event_id', 'event_name', 'member_id', 'member_name', 'amount'])
+        transaction = {}
+        for transaction in payments:
+            row = list()
+            row.append(str(transaction)+str(payments[transaction]['event_id'])+str(payments[transaction]['member_id']))
+            row.append(str(payments[transaction]['date']))
+            row.append(str(payments[transaction]['event_id']))
+            row.append(str(payments[transaction]['event_name']))
+            row.append(str(payments[transaction]['member_id']))
+            row.append(str(payments[transaction]['member_name']))
+            row.append(str(payments[transaction]['amount']))
+            writer.writerow(row)
+
 
