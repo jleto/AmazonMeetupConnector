@@ -4,7 +4,6 @@ from datetime import datetime
 import logging
 import json
 import csv
-import collections
 import meetup
 from pprint import pprint
 
@@ -25,13 +24,12 @@ with open('meetup.properties', 'r') as f:
 
         k, v = line.split("=", 1)
         meetupProperties[k] = v
-        print(meetupProperties[k])
 
 #   If only utility script is called
 if len(sys.argv) <= 1:
     sys.exit("Usage: python %s [OPTION] [PARAMETERS]\n"
              "Where possible options include:\n"
-             "   --payments                        Merge amazon and meetup payment information.\n"
+             "   --payments                        Merge meetup payment information.\n"
              "   --help                         Help for using this tool.\n"
              "Where possible optional parameters include:\n"
              "   --start-date=STARTDATE         Start date of the search. If omitted, search will start at the first transaction.\n"
@@ -76,7 +74,7 @@ if sys.argv[1] == '--payments':
 
     if outputFormat == "CSV":
         writer = csv.writer(open("meetup-"+str(endDate).split(" ")[0].replace('/','-')+".csv", 'w'), quoting=csv.QUOTE_ALL)
-        writer.writerow(['id','date','event_id', 'event_name', 'member_id', 'member_name', 'amount'])
+        writer.writerow(['key','datetime','event_id', 'event_name', 'member_id', 'member_name', 'amount'])
         transaction = {}
         for transaction in payments:
             row = list()
