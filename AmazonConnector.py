@@ -3,8 +3,7 @@ import os
 from datetime import datetime
 import logging
 import json
-import csv
-from boto.fps.connection import FPSConnection
+import amazon
 from pprint import pprint
 
 amazonProperties = {}
@@ -72,40 +71,14 @@ if sys.argv[1] == '--payments':
     if endDate == None:
         endDate = datetime.strptime(Now(), '%m-%d-%Y')
 
-    #   Instantiate amazon object using boto library
-  
     try:
-        options = {}
-        options['host'] = 'fps.amazonaws.com'
-        boto_aws = FPSConnection(amazonAccessKey, amazonSecretKey, **options)
 
-        options = {}
-        options['StartDate'] = startDate.strftime("%Y-%m-%d")
-        if endDate != None:
-            endDate.strftime("%Y-%m-%d")
+        amazonProvider = amazon.amazon(amazonAccessKey, amazonSecretKey)
+        amazonProvider.getPayments(startDate, endDate)
+        amazonProvider.write()
 
-        obj = boto_aws.get_account_activity(**options)
-        result = obj.GetAccountActivityResult
-        payments = result.Transaction
-
-        if outputFormat == "CSV":
-            writer = csv.writer(open("amazon-"+str(endDate).split(" ")[0].replace('/','-')+".csv", 'w'), quoting=csv.QUOTE_ALL)
-            writer.writerow(["key","datetime","sender_key", "sender_name", "description", "fees", "status", "amount"])
-            for transaction in payments:
-                row = list()
-                row.append(transaction.TransactionId)
-                row.append(transaction.DateCompleted)
-                row.append(transaction.SenderTokenId)
-                row.append(transaction.SenderName)
-                if "Description:" in str(transaction.TransactionPart[0]).split('(')[1].split(',')[0]:
-                    row.append(str(transaction.TransactionPart[0]).split('(')[1].split(',')[0].split("'")[1])
-                else:
-                    row.append("")
-                row.append(transaction.FPSFees)
-                row.append(transaction.TransactionStatus)
-                row.append(transaction.TransactionAmount)
-                writer.writerow(row)
-
-    except Exception, Argument:
-        print "Boto FPS Amazon Activity failed with Error: %s", Argument
-
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
+        print(str(e).split("'")[1])
