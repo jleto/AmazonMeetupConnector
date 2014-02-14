@@ -39,6 +39,9 @@ class amazon:
     def setEndDate(self, endDate):
         self.__endDate = endDate
 
+    def getTransactionCount(self):
+        return len(self.__payments)
+
     def getPayments(self, startDate, endDate):
 
         #   Instantiate amazon object using boto library
@@ -64,13 +67,13 @@ class amazon:
             print "Boto FPS Amazon Activity failed with Error: %s", Argument
 
 
-    def write(self):
+    def write(self, path):
 
         if self.__payments == None:
             print "There are no payments."
             return None
         
-        writer = csv.writer(open("amazon-"+str(self.getEndDate()).split(" ")[0].replace('/','-')+".csv", 'w'), quoting=csv.QUOTE_ALL)
+        writer = csv.writer(open(path+"/amazon-"+str(self.getEndDate()).split(" ")[0].replace('/','-')+".csv", 'w'), quoting=csv.QUOTE_ALL)
         writer.writerow(["key","datetime","sender_key", "sender_name", "description", "fees", "status", "amount"])
         
         for transaction in self.__payments:
