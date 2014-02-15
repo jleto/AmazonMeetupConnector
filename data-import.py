@@ -3,15 +3,15 @@ import psycopg2
 import sys
 from pprint import pprint
 import datetime
+from datetime import timedelta
 import meetup
 import amazon
 import logging
 
 def main():
-    
-    logging.basicConfig(filename='./log/novalabs-data-import.log', level=logging.INFO)
-    conn_string = "host='localhost' dbname='novalabs' user='jleto'"
-
+   
+    logging.basicConfig(filename='/home/jleto/AmazonMeetupConnector/log/novalabs-data-import.log', level=logging.INFO)
+ 
     def getTimeStamp():
         return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
  
@@ -64,7 +64,7 @@ def main():
 
     def amazonRow(row):
         amazonProvider = amazon.amazon(amazonProperties['AWS_ACCESS_KEY'], amazonProperties['AWS_SECRET_KEY'])
-        amazonProvider.getPayments(dtBatchDate, dtBatchDate)
+        amazonProvider.getPayments(dtBatchDate, dtBatchDate+timedelta(days=1))
         if amazonProvider.getTransactionCount() > 0:
             try:
                 path = amazonProperties['datafile_path']
@@ -82,7 +82,7 @@ def main():
             except Exception, e:
                 reportError(e, row)
         else:
-            skipRow()
+            skipRow(row)
 
     def meetupRow(row):
         meetupProvider = meetup.meetup(meetupProperties['groupName'], meetupProperties['apiKey'])
@@ -115,8 +115,6 @@ def main():
     logging.debug('['+getTimeStamp()+'] [AMAZON]  Reading in Amazon properties file ('+str(amazonProperties)+')')
 
     conn_string = "host='"+projectProperties['conn_host']+"' dbname='"+projectProperties['conn_dbname']+"' user='"+projectProperties['conn_user']+"'"
-    logging.basicConfig(filename=projectProperties['log_file'], level=logging.INFO)
-
 
     logging.info('['+getTimeStamp()+'] [GENERAL] Generating batches.')
     gen_conn = psycopg2.connect(conn_string)

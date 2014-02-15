@@ -52,9 +52,13 @@ class amazon:
             boto_aws = FPSConnection(self.getAccessKey(), self.getSecretKey(), **options)
 
             options = {}
-            options['StartDate'] = startDate.strftime("%Y-%m-%d")
             if endDate != None:
                 endDate.strftime("%Y-%m-%d")
+            else:
+                endDate = startDate
+ 
+            options['StartDate'] = startDate.strftime("%Y-%m-%d")
+            options['EndDate'] = endDate.strftime("%Y-%m-%d")
 
             self.setStartDate(startDate)
             self.setEndDate(endDate)
