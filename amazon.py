@@ -73,13 +73,14 @@ class amazon:
             print "There are no payments."
             return None
         
-        writer = csv.writer(open(path+"/amazon-"+str(self.getEndDate()).split(" ")[0].replace('/','-')+".csv", 'w'), quoting=csv.QUOTE_ALL)
-        writer.writerow(["key","datetime","sender_key", "sender_name", "description", "fees", "status", "amount"])
+        writer = csv.writer(open(path+"/amazon-"+self.getEndDate().strftime('%Y-%m-%d').split(" ")[0].replace('/','-')+".csv", 'w'), quoting=csv.QUOTE_ALL)
+        writer.writerow(["key","datetime","fps_operation", "sender_key", "sender_name", "description", "fees", "status", "amount"])
         
         for transaction in self.__payments:
             row = list()
             row.append(transaction.TransactionId)
             row.append(transaction.DateCompleted)
+            row.append(transaction.FPSOperation)
             row.append(transaction.SenderTokenId)
             row.append(transaction.SenderName)
             if "Description:" in str(transaction.TransactionPart[0]).split('(')[1].split(',')[0]:
