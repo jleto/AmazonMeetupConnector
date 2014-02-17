@@ -1,12 +1,12 @@
 #!/usr/bin/python
 import psycopg2
 import sys
-from pprint import pprint
 import datetime
 from datetime import timedelta
 import meetup
 import amazon
 import logging
+import time
 
 def main():
    
@@ -54,7 +54,7 @@ def main():
 
     def reportError(e, row):
            e = sys.exc_info()[0]
-           logging.info('['+getTimeStamp()+'] [ERROR] %s. Job status set to error.', e)
+           logging.info('['+getTimeStamp()+'] [ERROR] %s. Line ('+str(sys.exc_traceback.tb_lineno)+').', e)
            error_conn = psycopg2.connect(conn_string)
            error_cursor = error_conn.cursor()
            error_cursor.execute("update etl.job set status='error' where id = " + str(row[0]) + ";")
@@ -64,7 +64,7 @@ def main():
 
     def amazonRow(row):
         amazonProvider = amazon.amazon(amazonProperties['AWS_ACCESS_KEY'], amazonProperties['AWS_SECRET_KEY'])
-        amazonProvider.getPayments(dtBatchDate, dtBatchDate+timedelta(days=1))
+        amazonProvider.getPayments(dtBatchDate-timedelta(days=1), dtBatchDate)
         if amazonProvider.getTransactionCount() > 0:
             try:
                 path = amazonProperties['datafile_path']
@@ -131,11 +131,13 @@ def main():
                     on job.batch_id = batch.id \
                     inner join etl.product \
                     on batch.product_id = product.id \
+                    where job.status in ('pending', 'ready') \
                     order by product_key asc, batch.key asc;")
     
     logging.info('['+getTimeStamp()+'] [GENERAL] Jobs to process: ('+str(job_cursor.rowcount)+').')
     
     for row in job_cursor:
+        time.sleep(1)
         dtBatchDate = datetime.datetime.strptime(row[2], '%Y-%m-%d')
         strBatchDate = str(datetime.datetime.strptime(row[2], '%Y-%m-%d')).split(" ")[0]
         if row[3] == 'meetup_payments':

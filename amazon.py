@@ -5,7 +5,6 @@ import logging
 import json
 import csv
 from boto.fps.connection import FPSConnection
-from pprint import pprint
 
 class amazon:
 
@@ -67,31 +66,61 @@ class amazon:
             result = obj.GetAccountActivityResult
             self.__payments = result.Transaction
 
-        except Exception, Argument:
-            print "Boto FPS Amazon Activity failed with Error: %s", Argument
+        except Exception, e:
+            e = sys.exc_info()[0]
+            logging.info('['+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'] [ERROR] Boto FPS Amazon Activity failed with Error: %s', e)
 
 
     def write(self, path):
 
         if self.__payments == None:
-            print "There are no payments."
+            logging.info('['+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'] [AMAZON] There are no payments.')
             return None
         
-        writer = csv.writer(open(path+"/amazon-"+self.getEndDate().strftime('%Y-%m-%d').split(" ")[0].replace('/','-')+".csv", 'w'), quoting=csv.QUOTE_ALL)
-        writer.writerow(["key","datetime","fps_operation", "sender_key", "sender_name", "description", "fees", "status", "amount"])
+        try:
+            CSVFileName = path+"/amazon-"+self.getEndDate().strftime('%Y-%m-%d').split(" ")[0].replace('/','-')+".csv"
+            writer = csv.writer(open(CSVFileName, 'w'), quoting=csv.QUOTE_ALL)
+            writer.writerow(["key","datetime","fps_operation", "sender_key", "sender_name", "description", "fees", "status", "amount"])
         
-        for transaction in self.__payments:
-            row = list()
-            row.append(transaction.TransactionId)
-            row.append(transaction.DateCompleted)
-            row.append(transaction.FPSOperation)
-            row.append(transaction.SenderTokenId)
-            row.append(transaction.SenderName)
-            if "Description:" in str(transaction.TransactionPart[0]).split('(')[1].split(',')[0]:
-                row.append(str(transaction.TransactionPart[0]).split('(')[1].split(',')[0].split("'")[1])
-            else:
-                row.append("")
-            row.append(transaction.FPSFees)
-            row.append(transaction.TransactionStatus)
-            row.append(transaction.TransactionAmount)
-            writer.writerow(row)
+            for transaction in self.__payments:
+                row = list()
+                row.append(str(transaction.TransactionId))
+                try:
+                    row.append(str(transaction.DateCompleted))
+                except:
+                    row.append("")
+                try:
+                    row.append(str(transaction.FPSOperation))
+                except:
+                    row.append("")
+                try:
+                    row.append(str(transaction.SenderTokenId))
+                except:
+                    row.append("")
+                try:
+                    row.append(transaction.SenderName.encode("ascii", "ignore"))
+                except:
+                    row.append("")
+                if "Description:" in str(transaction.TransactionPart[0]).split('(')[1].split(',')[0]:
+                    row.append(str(transaction.TransactionPart[0]).split('(')[1].split(',')[0].split("'")[1])
+                else:
+                    row.append("")
+                
+                try:
+                    row.append(str(transaction.FPSFees))
+                except:
+                    row.append("")
+                try:
+                    row.append(str(transaction.TransactionStatus))
+                except:
+                    row.append("")
+                try:
+                    row.append(str(transaction.TransactionAmount))
+                except:
+                    row.append("")
+                
+                writer.writerow(row)
+
+        except Exception, e:
+            e = sys.exc_info()[0]
+            logging.info('['+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+'] [ERROR] %s.', e)
