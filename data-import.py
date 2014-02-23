@@ -2,6 +2,7 @@
 import time
 from novalabs.etl import jobProcessor
 from novalabs import log
+from novalabs import properties
 import datetime
 import logging
 import AmazonHandler
