@@ -35,6 +35,8 @@ def main():
             MeetupHandler.process(jobDict, meetupProperties)
         elif jobDict['product_key'] == 'amazon_payments':
             AmazonHandler.process(jobDict, amazonProperties)
+        elif jobDict['product_key'] == 'squareup_payments':
+		    SquareupHander.process(jobDict, squareupProperties)
 
    # logging.info('['+getTimeStamp()+'] [FINISH] Data import processing completed.')
     log.writeInfo('[FINISH] Data import processing completed.')
