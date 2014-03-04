@@ -7,6 +7,7 @@ import datetime
 import logging
 import AmazonHandler
 import MeetupHandler
+import SquareupHandler
 
 def main():
    
@@ -14,6 +15,8 @@ def main():
     projectProperties = properties.get('data-import.properties')
     meetupProperties = properties.get('meetup.properties')
     amazonProperties = properties.get('amazon.properties')
+    squareupProperties = properties.get('squareup.properties')
+
     try:
        log.writeInfo(' [GENERAL] Generating batches.')
        result = jobProcessor.generate()
@@ -36,7 +39,7 @@ def main():
         elif jobDict['product_key'] == 'amazon_payments':
             AmazonHandler.process(jobDict, amazonProperties)
         elif jobDict['product_key'] == 'squareup_payments':
-		    SquareupHander.process(jobDict, squareupProperties)
+            SquareupHandler.process(jobDict, squareupProperties)
 
    # logging.info('['+getTimeStamp()+'] [FINISH] Data import processing completed.')
     log.writeInfo('[FINISH] Data import processing completed.')

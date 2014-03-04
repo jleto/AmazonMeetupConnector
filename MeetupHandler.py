@@ -14,7 +14,7 @@ def strDate(batch_key):
 
 def skip(job):
     jobProcessor.complete(job['job_id']);
-    log.writeInfo('[MEETUP] No transactions for JobId: ('+str(job['job_id'])+') | BatchId: ('+str(job['batch_id'])+') | Date: ('+strDate(job['batch_key'])+'). Skipping and marking job complete.')
+    log.writeInfo('[MEETUP] No transactions for JobId: ('+str(job['job_id'])+') | BatchId: ('+str(job['batch_id'])+') | Date: ('+strDate(job['batch_key'])+'). Skipping.')
 
 def process(job, meetupProperties):
     

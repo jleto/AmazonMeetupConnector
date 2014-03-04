@@ -5,6 +5,8 @@ import urllib2
 import pycurl
 import json
 import csv
+from io import BytesIO as StringIO
+from pprint import pprint
 
 class squareup:
 
@@ -21,37 +23,20 @@ class squareup:
     def sqlLoadPayments(self, jobId, strCSVFilePath):
         return "do $$ begin perform etl.fn_squareup_payment_importcsv("+str(jobId)+", '"+strCSVFilePath+"'); end$$;"
 
-    @staticmethod
-    def getTimeStamp(Date):
-        try:
-            if type(Date) is datetime:
-                return str(int((datetime(Date.year, Date.month, Date.day) - \
-                                           datetime(1970, 1,1)).total_seconds()))+'000' 
-            else:
-                return '0'
-
-        except Exception, e:            
-            log.writeError(e)
- 
-    @staticmethod
-    def getDate(Date):
-        try:
-            if type(Date) is datetime:
-                return Date
-            else:
-                return datetime.strptime(str(Date), '%Y-%m-%d')
-        except Exception, e:
-            log.writeError(e)
-
-    def getPaymentData(self, startDate, endDate):
+    def getPaymentData(self, startDate):
 	    try:
-			c = pycurl.Curl()
-			c.setopt(pycurl.URL, 'https://connect.squareup.com/v1/me/payments')
-			c.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer '+self.getPersonalAccessToken()]
-			c.setopt(pycurl.VERBOSE, 0)
-			print c.getinfo(pycurl.HTTP_CODE)
+                result = StringIO()
+                c = pycurl.Curl()
+                URL = 'https://connect.squareup.com/v1/me/payments?begin_time='+startDate+'T00:00:00Z&end_time='+startDate+'T23:59:59Z'
+                c.setopt(pycurl.URL, URL)
+                c.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer '+self.getPersonalAccessToken()+''])
+                c.setopt(pycurl.WRITEFUNCTION, result.write)
+                c.perform()                       
+                resultDict = {}
+                resultDict = result.getvalue() 
+                self._payments = json.loads(resultDict)
 	    except Exception, e:
-            log.writeError(e)
+                log.writeError(e)
 
     def getPayments(self):
         return self._payments
@@ -68,17 +53,30 @@ class squareup:
            return None
         try:
             writer = csv.writer(open(strCSVFilePath, 'w'), quoting=csv.QUOTE_ALL)
-            writer.writerow(["key", "datetime", "event_id", "event_name", "member_id", "member_name", "amount"])
+            writer.writerow(["key", "datetime", "description", "amount", "fee"])
             payments = self.getPayments()
             for transaction in payments:
                 row = list()
-                row.append(str(transaction)+str(payments[transaction]['event_id'])+str(payments[transaction]['member_id']))
-                row.append(str(payments[transaction]['date']))
-                row.append(str(payments[transaction]['event_id']))
-                row.append(str(payments[transaction]['event_name']))
-                row.append(str(payments[transaction]['member_id']))
-                row.append(str(payments[transaction]['member_name']))
-                row.append(str(payments[transaction]['amount']))
+                try:
+                    row.append(str(transaction['id']))
+                except:
+                    row.append("")
+                try:
+                    row.append(str(transaction['created_at']))
+                except:
+                    row.append("")
+                try:
+                    row.append(str(transaction['description']))
+                except:
+                    row.append("")
+                try:
+                    row.append(str(transaction['net_total_money']['amount']))
+                except:
+                    row.append("")
+                try:
+                    row.append(str(transaction['processing_fee_money']['amount']).replace('-', ''))
+                except:
+                    row.append("")
                 writer.writerow(row)
         except Exception, e:
             log.writeError(e)

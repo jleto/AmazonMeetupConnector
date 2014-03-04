@@ -51,7 +51,7 @@ class meetup:
 
     def getEventData(self, startDate, endDate):
         try:
-            eventURL = 'http://api.meetup.com/2/events?key='+self.getApiKey()+'&time='+self.getTimeStamp(startDate)+','+self.getTimeStamp(endDate)+'&group_urlname='+self.getGroupName()+'&fields=fee&status=upcoming,past'
+            eventURL = 'http://api.meetup.com/2/events?key='+self.getApiKey()+'&time='+self.getTimeStamp(startDate)+','+self.getTimeStamp(endDate)+'&group_urlname='+self.getGroupName()+'&fields=fee&status=past'
 
             self._events = json.load(urllib2.urlopen(eventURL))['results']
         except Exception, e:
@@ -102,7 +102,7 @@ class meetup:
            return None
         try:
             writer = csv.writer(open(strCSVFilePath, 'w'), quoting=csv.QUOTE_ALL)
-            writer.writerow(["key", "datetime", "event_id", "event_name", "member_id", "member_name", "amount"])
+            writer.writerow(["key", "datetime", "event_key", "event_name", "member_key", "member_name", "amount"])
             payments = self.getPayments()
             for transaction in payments:
                 row = list()
